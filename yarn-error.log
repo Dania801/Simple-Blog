@@ -1,0 +1,27 @@
+Arguments: 
+  /usr/bin/node /usr/local/bin/yarn --versuib
+
+PATH: 
+  /home/dania/.composer/vendor/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/usr/lib/java/jdk1.8.0_91/bin
+
+Yarn version: 
+  1.6.0
+
+Node version: 
+  6.11.4
+
+Platform: 
+  linux x64
+
+Trace: 
+  Error: EACCES: permission denied, rmdir '/home/dania/Desktop/Simple/node_modules/.bin'
+      at Error (native)
+
+npm manifest: 
+  No manifest
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
