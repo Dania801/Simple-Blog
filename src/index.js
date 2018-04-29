@@ -1,16 +1,24 @@
 /* eslint-disable no-console */
 
 import express from 'express';
+import constants from './config/constants';
+import './config/database';
+import middlewaresConfig from './config/middlewares';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, err => {
+middlewaresConfig(app);
+
+app.get('/', (req, res) => {
+  res.send('Hello world');
+});
+
+app.listen(constants.PORT, err => {
   if (err) {
     throw err;
   } else {
     console.log(`
-      Server running on port: ${PORT}
+      Server running on port: ${constants.PORT}
       -----------------------------
       Running on ${process.env.PORT}
       -----------------------------
