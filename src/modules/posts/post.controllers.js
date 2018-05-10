@@ -1,5 +1,6 @@
 import HTTPStatus from 'http-status';
 import Post from './post.model';
+import User from '../users/user.model';
 
 export async function createPost(req, res) {
   try {
@@ -54,6 +55,16 @@ export async function deletePost(req, res) {
       return res.sendStatus(HTTPStatus.UNAUTHORIZED);
     }
     await post.remove(post);
+    return res.sendStatus(HTTPStatus.OK);
+  } catch (e) {
+    res.status(HTTPStatus.BAD_REQUEST).json(e);
+  }
+}
+
+export async function favouritePost(req, res) {
+  try {
+    const user = await User.findById(req.user._id);
+    await user._favourites.posts(req.params.id);
     return res.sendStatus(HTTPStatus.OK);
   } catch (e) {
     res.status(HTTPStatus.BAD_REQUEST).json(e);

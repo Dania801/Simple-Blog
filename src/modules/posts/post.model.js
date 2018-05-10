@@ -75,6 +75,12 @@ PostSchema.statics = {
       .limit(limit || 0) // get only the first five posts
       .populate('user');
   },
+  incFavourite(postId) {
+    return this.findByIdAndUpdate(postId, { $inc: {favouriteCount: 1}});
+  },
+  decFavourite(postId) {
+    return this.findByIdAndUpdate(postId, { $inc: {favouriteCount: -1}});
+  },
 };
 
 export default mongoose.model('Post', PostSchema);

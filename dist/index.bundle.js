@@ -148,6 +148,10 @@ var _constants = __webpack_require__(0);
 
 var _constants2 = _interopRequireDefault(_constants);
 
+var _post = __webpack_require__(26);
+
+var _post2 = _interopRequireDefault(_post);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 const UserSchema = new _mongoose.Schema({
@@ -190,6 +194,12 @@ const UserSchema = new _mongoose.Schema({
       },
       message: '{VALUE} is not a valid password!'
     }
+  },
+  favourites: {
+    posts: [{
+      type: _mongoose.Schema.Types.ObjectId,
+      ref: 'Post'
+    }]
   }
 }, { timestamps: true });
 
@@ -227,6 +237,18 @@ UserSchema.methods = {
       _id: this._id,
       userName: this.userName
     };
+  },
+  _favourites: {
+    async posts(postId) {
+      if (this.favourites.posts.indexOf(postId) >= 0) {
+        this.favourites.posts.remove(postId);
+        await _post2.default.decFavourite(postId);
+      } else {
+        this.favourites.posts.push(postId);
+        await _post2.default.incFavourite(postId);
+      }
+      return this.save();
+    }
   }
 };
 
@@ -670,6 +692,7 @@ exports.getPostById = getPostById;
 exports.getPostsList = getPostsList;
 exports.updatePost = updatePost;
 exports.deletePost = deletePost;
+exports.favouritePost = favouritePost;
 
 var _httpStatus = __webpack_require__(30);
 
@@ -678,6 +701,10 @@ var _httpStatus2 = _interopRequireDefault(_httpStatus);
 var _post = __webpack_require__(26);
 
 var _post2 = _interopRequireDefault(_post);
+
+var _user = __webpack_require__(2);
+
+var _user2 = _interopRequireDefault(_user);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -734,6 +761,16 @@ async function deletePost(req, res) {
       return res.sendStatus(_httpStatus2.default.UNAUTHORIZED);
     }
     await post.remove(post);
+    return res.sendStatus(_httpStatus2.default.OK);
+  } catch (e) {
+    res.status(_httpStatus2.default.BAD_REQUEST).json(e);
+  }
+}
+
+async function favouritePost(req, res) {
+  try {
+    const user = await _user2.default.findById(req.user._id);
+    await user._favourites.posts(req.params.id);
     return res.sendStatus(_httpStatus2.default.OK);
   } catch (e) {
     res.status(_httpStatus2.default.BAD_REQUEST).json(e);
@@ -832,6 +869,12 @@ PostSchema.statics = {
     .skip(skip || 0) // skip the first five posts
     .limit(limit || 0) // get only the first five posts
     .populate('user');
+  },
+  incFavourite(postId) {
+    return this.findByIdAndUpdate(postId, { $inc: { favouriteCount: 1 } });
+  },
+  decFavourite(postId) {
+    return this.findByIdAndUpdate(postId, { $inc: { favouriteCount: -1 } });
   }
 };
 
@@ -875,6 +918,7 @@ routes.get('/:id', postController.getPostById);
 routes.get('/', postController.getPostsList);
 routes.patch('/:id', _auth.authJwt, (0, _expressValidation2.default)(_post3.default.updatePost), postController.updatePost);
 routes.delete('/:id', _auth.authJwt, postController.deletePost);
+routes.post('/:id/favourite', _auth.authJwt, postController.favouritePost);
 
 exports.default = routes;
 
