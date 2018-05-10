@@ -1,13 +1,13 @@
 const devConfig = {
-  MONGO_URL: 'mongodb://localhost/makenodejsapi-dev',
+  MONGO_URL: 'mongodb://localhost/makeanodejsapi-dev',
 };
 
 const testConfig = {
-  MONGO_URL: 'mongodb://localhost/makenodejsapi-test',
+  MONGO_URL: 'mongodb://localhost/makeanodejsapi-test',
 };
 
 const prodConfig = {
-  MONGO_URL: 'mongodb://localhost/makenodejsapi-prod',
+  MONGO_URL: 'mongodb://localhost/makeanodejsapi-prod',
 };
 
 const defaultConfig = {
