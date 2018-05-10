@@ -64,6 +64,13 @@ PostSchema.statics = {
       user,
     });
   },
+  list({ skip = 0, limit = 5 } = {}) {
+    return this.find()
+      .sort({ createdAt: -1 }) // get posts by last added
+      .skip(skip || 0) // skip the first five posts
+      .limit(limit || 0) // get only the first five posts
+      .populate('user');
+  },
 };
 
 export default mongoose.model('Post', PostSchema);
