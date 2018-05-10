@@ -216,13 +216,15 @@ UserSchema.methods = {
     return _jsonwebtoken2.default.sign({ _id: this._id }, _constants2.default.JWT_SECRET);
   },
   toAuthJSON() {
-    return { _id: this._id,
+    return {
+      _id: this._id,
       userName: this.userName,
       token: `JWT ${this.createToken()}`
     };
   },
   toJSON() {
-    return { _id: this._id,
+    return {
+      _id: this._id,
       userName: this.userName
     };
   }
@@ -667,6 +669,7 @@ exports.createPost = createPost;
 exports.getPostById = getPostById;
 exports.getPostsList = getPostsList;
 exports.updatePost = updatePost;
+exports.deletePost = deletePost;
 
 var _httpStatus = __webpack_require__(30);
 
@@ -698,7 +701,10 @@ async function getPostById(req, res) {
 
 async function getPostsList(req, res) {
   try {
-    const posts = await _post2.default.list({ limit: parseInt(req.query.limit, 0), skip: parseInt(req.query.skip, 0) });
+    const posts = await _post2.default.list({
+      limit: parseInt(req.query.limit, 0),
+      skip: parseInt(req.query.skip, 0)
+    });
     return res.status(_httpStatus2.default.OK).json(posts);
   } catch (e) {
     res.status(_httpStatus2.default.BAD_REQUEST).json(e);
@@ -716,6 +722,19 @@ async function updatePost(req, res) {
       post[key] = req.body[key];
     });
     return res.status(_httpStatus2.default.OK).json((await post.save()));
+  } catch (e) {
+    res.status(_httpStatus2.default.BAD_REQUEST).json(e);
+  }
+}
+
+async function deletePost(req, res) {
+  try {
+    const post = await _post2.default.findById(req.params.id);
+    if (!post.user.equals(req.user._id)) {
+      return res.sendStatus(_httpStatus2.default.UNAUTHORIZED);
+    }
+    await post.remove(post);
+    return res.sendStatus(_httpStatus2.default.OK);
   } catch (e) {
     res.status(_httpStatus2.default.BAD_REQUEST).json(e);
   }
@@ -855,6 +874,7 @@ routes.post('/', _auth.authJwt, (0, _expressValidation2.default)(_post3.default.
 routes.get('/:id', postController.getPostById);
 routes.get('/', postController.getPostsList);
 routes.patch('/:id', _auth.authJwt, (0, _expressValidation2.default)(_post3.default.updatePost), postController.updatePost);
+routes.delete('/:id', _auth.authJwt, postController.deletePost);
 
 exports.default = routes;
 

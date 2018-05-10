@@ -6,9 +6,20 @@ import postValidation from './post.validations';
 
 const routes = new Router();
 
-routes.post('/', authJwt, validate(postValidation.createPost), postController.createPost);
+routes.post(
+  '/',
+  authJwt,
+  validate(postValidation.createPost),
+  postController.createPost,
+);
 routes.get('/:id', postController.getPostById);
 routes.get('/', postController.getPostsList);
-routes.patch('/:id', authJwt, validate(postValidation.updatePost), postController.updatePost);
+routes.patch(
+  '/:id',
+  authJwt,
+  validate(postValidation.updatePost),
+  postController.updatePost,
+);
+routes.delete('/:id', authJwt, postController.deletePost);
 
 export default routes;
