@@ -2,7 +2,7 @@ import mongoose, { Schema } from 'mongoose';
 import validator from 'validator';
 import { hashSync, compareSync } from 'bcrypt-nodejs';
 import jwt from 'jsonwebtoken';
-import uniqueValidator from 'mongoose-unique-validator'; 
+import uniqueValidator from 'mongoose-unique-validator';
 import { passwordReg } from './user.validation';
 import constants from '../../config/constants';
 
@@ -71,10 +71,15 @@ UserSchema.methods = {
   createToken() {
     return jwt.sign({ _id: this._id }, constants.JWT_SECRET);
   },
-  toJSON() {
+  toAuthJSON() {
     return { _id: this._id,
       userName: this.userName,
       token: `JWT ${this.createToken()}`,
+    };
+  },
+  toJSON() {
+    return { _id: this._id,
+      userName: this.userName,
     };
   },
 };

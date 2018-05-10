@@ -215,10 +215,15 @@ UserSchema.methods = {
   createToken() {
     return _jsonwebtoken2.default.sign({ _id: this._id }, _constants2.default.JWT_SECRET);
   },
-  toJSON() {
+  toAuthJSON() {
     return { _id: this._id,
       userName: this.userName,
       token: `JWT ${this.createToken()}`
+    };
+  },
+  toJSON() {
+    return { _id: this._id,
+      userName: this.userName
     };
   }
 };
@@ -439,6 +444,10 @@ Object.defineProperty(exports, "__esModule", {
 exports.signUp = signUp;
 exports.login = login;
 
+var _httpStatus = __webpack_require__(30);
+
+var _httpStatus2 = _interopRequireDefault(_httpStatus);
+
 var _user = __webpack_require__(2);
 
 var _user2 = _interopRequireDefault(_user);
@@ -448,14 +457,14 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 async function signUp(req, res) {
   try {
     const user = await _user2.default.create(req.body);
-    return res.status(201).json(user);
+    return res.status(_httpStatus2.default.CREATED).json(user.toAuthJSON());
   } catch (e) {
-    return res.status(500).json(e);
+    return res.status(_httpStatus2.default.BAD_REQUEST).json(e);
   }
 }
 
 async function login(req, res, next) {
-  res.status(200).json(req.user);
+  res.status(_httpStatus2.default.OK).json(req.user.toAuthJSON());
   return next();
 }
 
@@ -655,6 +664,11 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.createPost = createPost;
+exports.getPostById = getPostById;
+
+var _httpStatus = __webpack_require__(30);
+
+var _httpStatus2 = _interopRequireDefault(_httpStatus);
 
 var _post = __webpack_require__(26);
 
@@ -665,9 +679,18 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 async function createPost(req, res) {
   try {
     const post = await _post2.default.createPost(req.body, req.user._id);
-    return res.status(201).json(post);
+    return res.status(_httpStatus2.default.CREATED).json(post);
   } catch (e) {
-    res.status(400).json(e);
+    res.status(_httpStatus2.default.BAD_REQUEST).json(e);
+  }
+}
+
+async function getPostById(req, res) {
+  try {
+    const post = await _post2.default.findById(req.params.id).populate('user');
+    return res.status(_httpStatus2.default.OK).json(post);
+  } catch (e) {
+    res.status(_httpStatus2.default.BAD_REQUEST).json(e);
   }
 }
 
@@ -737,13 +760,22 @@ PostSchema.pre('save', function (next) {
 PostSchema.methods = {
   _slugify() {
     this.slug = (0, _slug2.default)(this.title);
+  },
+  toJSON() {
+    return {
+      _id: this._id,
+      title: this.title,
+      text: this.text,
+      createdAt: this.createdAt,
+      slug: this.slug,
+      user: this.user,
+      favouriteCount: this.favouriteCount
+    };
   }
 };
 
 PostSchema.statics = {
   createPost(args, user) {
-    console.log(args, user);
-    console.log('------------------------');
     return this.create(Object.assign({}, args, {
       user
     }));
@@ -786,6 +818,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 const routes = new _express.Router();
 
 routes.post('/', _auth.authJwt, (0, _expressValidation2.default)(_post3.default.createPost), postController.createPost);
+routes.get('/:id', postController.getPostById);
 
 exports.default = routes;
 
@@ -820,6 +853,12 @@ exports.default = {
     }
   }
 };
+
+/***/ }),
+/* 30 */
+/***/ (function(module, exports) {
+
+module.exports = require("http-status");
 
 /***/ })
 /******/ ]);

@@ -44,12 +44,21 @@ PostSchema.methods = {
   _slugify() {
     this.slug = slug(this.title);
   },
+  toJSON() {
+    return {
+      _id: this._id,
+      title: this.title,
+      text: this.text,
+      createdAt: this.createdAt,
+      slug: this.slug,
+      user: this.user,
+      favouriteCount: this.favouriteCount,
+    };
+  },
 };
 
 PostSchema.statics = {
   createPost(args, user) {
-    console.log(args, user);
-    console.log('------------------------');
     return this.create({
       ...args,
       user,
