@@ -35,7 +35,7 @@ PostSchema.plugin(uniqueValidator, {
   message: '{VALUE} already taken!',
 });
 
-PostSchema.pre('save', function (next) {
+PostSchema.pre('save', function (next) { // methods are activated when saving happen (post/patch)
   this._slugify();
   next();
 });
