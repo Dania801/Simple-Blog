@@ -78,7 +78,8 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 const devConfig = {
-  MONGO_URL: 'mongodb://localhost/makeanodejsapi-dev'
+  MONGO_URL: 'mongodb://localhost/makeanodejsapi-dev',
+  JWT_SECRET: 'thisisasecret'
 };
 
 const testConfig = {
@@ -133,7 +134,15 @@ var _validator2 = _interopRequireDefault(_validator);
 
 var _bcryptNodejs = __webpack_require__(13);
 
+var _jsonwebtoken = __webpack_require__(23);
+
+var _jsonwebtoken2 = _interopRequireDefault(_jsonwebtoken);
+
 var _user = __webpack_require__(3);
+
+var _constants = __webpack_require__(0);
+
+var _constants2 = _interopRequireDefault(_constants);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -194,6 +203,15 @@ UserSchema.methods = {
   },
   authenticateUser(password) {
     return (0, _bcryptNodejs.compareSync)(password, this.password);
+  },
+  createToken() {
+    return _jsonwebtoken2.default.sign({ _id: this._id }, _constants2.default.JWT_SECRET);
+  },
+  toJSON() {
+    return { _id: this._id,
+      userName: this.userName,
+      token: `JWT ${this.createToken()}`
+    };
   }
 };
 
@@ -337,10 +355,15 @@ var _user = __webpack_require__(11);
 
 var _user2 = _interopRequireDefault(_user);
 
+var _auth = __webpack_require__(12);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 exports.default = app => {
   app.use('/api/v1/users', _user2.default);
+  app.get('/api/v1/users/hello', _auth.authJwt, (req, res) => {
+    res.send('this is a private route!');
+  });
 };
 
 /***/ }),
@@ -424,7 +447,6 @@ async function signUp(req, res) {
 }
 
 async function login(req, res, next) {
-  console.log('hello , im inside the controller');
   res.status(200).json(req.user);
   return next();
 }
@@ -476,7 +498,7 @@ exports.default = routes;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.authLocal = undefined;
+exports.authJwt = exports.authLocal = undefined;
 
 var _passport = __webpack_require__(5);
 
@@ -486,9 +508,15 @@ var _passportLocal = __webpack_require__(20);
 
 var _passportLocal2 = _interopRequireDefault(_passportLocal);
 
+var _passportJwt = __webpack_require__(22);
+
 var _user = __webpack_require__(2);
 
 var _user2 = _interopRequireDefault(_user);
+
+var _constants = __webpack_require__(0);
+
+var _constants2 = _interopRequireDefault(_constants);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -511,9 +539,30 @@ const localStrategy = new _passportLocal2.default(localOpts, async (email, passw
   }
 });
 
+const jwtOpts = {
+  jwtFromRequest: _passportJwt.ExtractJwt.fromAuthHeaderWithScheme('jwt'),
+  secretOrKey: _constants2.default.JWT_SECRET
+};
+
+const jwtStrategy = new _passportJwt.Strategy(jwtOpts, async (payload, done) => {
+  try {
+    const user = await _user2.default.findById(payload._id);
+
+    if (!user) {
+      return done(null, false);
+    }
+
+    return done(null, user);
+  } catch (e) {
+    return done(e, false);
+  }
+});
+
 _passport2.default.use(localStrategy);
+_passport2.default.use(jwtStrategy);
 
 const authLocal = exports.authLocal = _passport2.default.authenticate('local', { session: false });
+const authJwt = exports.authJwt = _passport2.default.authenticate('jwt', { session: false });
 
 /***/ }),
 /* 13 */
@@ -568,6 +617,18 @@ module.exports = require("passport-local");
 /***/ (function(module, exports) {
 
 module.exports = require("validator");
+
+/***/ }),
+/* 22 */
+/***/ (function(module, exports) {
+
+module.exports = require("passport-jwt");
+
+/***/ }),
+/* 23 */
+/***/ (function(module, exports) {
+
+module.exports = require("jsonwebtoken");
 
 /***/ })
 /******/ ]);
