@@ -76,10 +76,10 @@ PostSchema.statics = {
       .populate('user');
   },
   incFavourite(postId) {
-    return this.findByIdAndUpdate(postId, { $inc: {favouriteCount: 1}});
+    return this.findByIdAndUpdate(postId, { $inc: { favouriteCount: 1 } });
   },
   decFavourite(postId) {
-    return this.findByIdAndUpdate(postId, { $inc: {favouriteCount: -1}});
+    return this.findByIdAndUpdate(postId, { $inc: { favouriteCount: -1 } });
   },
 };
 

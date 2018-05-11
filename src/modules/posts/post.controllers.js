@@ -13,19 +13,39 @@ export async function createPost(req, res) {
 
 export async function getPostById(req, res) {
   try {
-    const post = await Post.findById(req.params.id).populate('user');
-    return res.status(HTTPStatus.OK).json(post);
+    const promise = await Promise.all([
+      User.findById(req.user._id),
+      Post.findById(req.params.id).populate('user')
+    ]);
+    const favourite = promise[0]._favourites.isPostIsFavourite(req.params.id);
+    const post = promise[1];
+    return res.status(HTTPStatus.OK).json({
+      ...post.toJSON(),
+      favourite
+    });
   } catch (e) {
-    res.status(HTTPStatus.BAD_REQUEST).json(e);
+    return res.status(HTTPStatus.BAD_REQUEST).json(e);
   }
 }
 
 export async function getPostsList(req, res) {
   try {
-    const posts = await Post.list({
-      limit: parseInt(req.query.limit, 0),
-      skip: parseInt(req.query.skip, 0),
-    });
+    const promise = await Promise.all([
+      User.findById(req.user._id),
+      Post.list({
+        limit: parseInt(req.query.limit, 0),
+        skip: parseInt(req.query.skip, 0),
+      })
+    ]);
+    const posts = promise[1].reduce((arr, post) => {
+      const favourite = promise[0]._favourites.isPostIsFavourite(post._id);
+      arr.push({
+        ...post.toJSON(),
+        favourite
+      });
+      return arr;
+    }, [])
+
     return res.status(HTTPStatus.OK).json(posts);
   } catch (e) {
     res.status(HTTPStatus.BAD_REQUEST).json(e);

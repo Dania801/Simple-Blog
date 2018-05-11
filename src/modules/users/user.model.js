@@ -50,11 +50,13 @@ const UserSchema = new Schema(
       },
     },
     favourites: {
-      posts: [{
-        type: Schema.Types.ObjectId,
-        ref: 'Post'
-      }]
-    }
+      posts: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: 'Post',
+        },
+      ],
+    },
   },
   { timestamps: true },
 );
@@ -104,8 +106,14 @@ UserSchema.methods = {
         await Post.incFavourite(postId);
       }
       return this.save();
+    },
+    isPostIsFavourite(postId) {
+      if (this.favourites.posts.indexOf(postId) >= 0) {
+        return true;
+      }
+      return false;
     }
-  }
+  },
 };
 
 export default mongoose.model('User', UserSchema);
